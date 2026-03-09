@@ -1,7 +1,46 @@
-.venv
-.vscode
-.pytest_cache
-
-__pycache__
+# Compiled and build artifacts
 *.pyc
-logs
+__pycache__/
+*.o
+*.obj
+*.out
+
+# Dependencies
+.venv/
+venv/
+node_modules/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# Coverage and testing
+.coverage
+coverage/
+htmlcov/
+
+# Python specific
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Build directories
+build/
+dist/
+target/
+*.egg-info/
+
+# OS generated files
+.DS_Store
+Thumbs.db

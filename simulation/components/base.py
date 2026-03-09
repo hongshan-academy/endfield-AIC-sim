@@ -19,7 +19,7 @@ class Component(object):
     _pending_upstreams:   List['Component']
     _pending_downstreams: List['Component']
     _can_accept_cache: Optional[bool]
-    _phase_1_requested: bool
+    _phase_1_visited: Set['Component']
     
     # for debug
     name: str
@@ -51,9 +51,8 @@ class Component(object):
         upstream: Optional['Component'] = None, 
         path: Optional[Set['Component']] = None
     ) -> None:
-        if self._phase_1_requested:
+        if upstream is not None and upstream in self._phase_1_visited:
             return
-        self._phase_1_requested = True
         
         if path is None:
             path = set()
@@ -64,6 +63,7 @@ class Component(object):
         if upstream is not None:
             logger.debug(f"[PHASE 1] {upstream} requests {self}")
             self._pending_upstreams.append(upstream)
+            self._phase_1_visited.add(upstream)
             
         path.add(self)
         
@@ -150,8 +150,8 @@ class Component(object):
         self._pending_upstreams   = []
         self._pending_downstreams = []
         self._can_accept_cache = None
-        self._phase_1_requested = False
-    
+        self._phase_1_visited = set()
+        
     def __repr__(self) -> str:
         return str(self)
     

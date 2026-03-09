@@ -17,7 +17,7 @@ sequenceDiagram
     Mid-->>Up: if `self._has_empty_slot`: `_grant`
     Mid-->>Up: if `self._is_full`: return `self.downstream._can_accept`
     activate Mid
-    Note over Mid: selections are made here    
+    Note over Mid: selections are made here (converger)
     
     Note over Up, Down: Phase 3: Computation
     
