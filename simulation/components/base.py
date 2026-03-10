@@ -81,13 +81,10 @@ class Component(object):
             logger.debug(f"[PHASE 3] {self} has no pending upstreams")
             return
         
-        if not self._can_accept(set()):
-            logger.debug(f"[PHASE 3] {self} cannot accept")
-            return
-        
         for upstream in self._pending_upstreams:
-            logger.debug(f"[PHASE 3] {self} grants {upstream}")
-            self._grant(upstream)
+            if self._can_accept(set(), upstream):
+                logger.debug(f"[PHASE 3] {self} grants {upstream}")
+                self._grant(upstream)
     
     def _phase_4_send(self) -> None:
         # for conveyor/converger:
@@ -143,7 +140,7 @@ class Component(object):
         if self._has_empty_slot():
             self._can_accept_cache = True
         else:
-            self._can_accept_cache = any(downstream._can_accept(path) for downstream in self._downstreams)
+            self._can_accept_cache = any(downstream._can_accept(path, self) for downstream in self._downstreams)
         
         path.remove(self)
         

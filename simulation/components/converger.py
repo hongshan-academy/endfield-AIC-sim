@@ -25,13 +25,13 @@ class Converger(Component):
                 break
     
     def _phase_3_response(self) -> None:
-        if not self._can_accept(set(), self):
+        if not self._can_accept(set()):
             return
         
-        if self._upstreams[self._rr_index] in self._pending_upstreams:
-            upstream = self._upstreams[self._rr_index]
-            logger.debug(f"[PHASE 3] {self} grants {upstream} (index={self._rr_index})")
-            self._grant(upstream)
+        for upstream in self._pending_upstreams:
+            if self._can_accept(set(), upstream):
+                logger.debug(f"[PHASE 3] {self} grants {upstream}")
+                self._grant(upstream)
 
     def _phase_4_send(self) -> None:        
         assert len(self._pending_downstreams) <= 1, self._pending_downstreams
