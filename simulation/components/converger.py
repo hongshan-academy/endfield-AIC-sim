@@ -7,29 +7,38 @@ logger = logging.getLogger(__name__)
 
 class Converger(Component):
     _rr_index: int
+    _selected_upstream: Optional[Component]
     
     def __init__(self, name: str = '') -> None:
         super(Converger, self).__init__(capacity=1, name=name)
-        
+            
         self._rr_index = 0
     
-    def _phase_2_response(self) -> None:
-        if not self._pending_upstreams:
-            return
+    def _phase_1_request(self, *args, **kwargs) -> None:
+        super()._phase_1_request(*args, **kwargs)
         
+    def _phase_2_adjudicate(self) -> None:
         for _ in range(len(self._upstreams)):
             self._rr_index = (self._rr_index + 1) % len(self._upstreams)
             upstream = self._upstreams[self._rr_index]
             if upstream in self._pending_upstreams:
-                logger.debug(f"[PHASE 2] {self} grants {upstream}")
-                self._grant(upstream)
+                logger.debug(f"[PHASE 2] {self} --(select)-> {upstream} (index={self._rr_index})")
+                self._selected_upstream = upstream
                 break
+        
+    def _phase_3_response(self) -> None:
+        if not self._pending_upstreams:
+            logger.debug(f'[PHASE 3] {self}: no requests received')
+            return
 
-    def _phase_3_send(self) -> None:        
+        if self._selected_upstream and self._can_accept(self._selected_upstream, set()):
+            self._grant(self._selected_upstream)
+
+    def _phase_4_send(self) -> None:        
         assert len(self._pending_downstreams) <= 1, self._pending_downstreams
         
         if self._pending_downstreams:
-            logger.debug(f"[PHASE 3] {self} sends {self._items[0]} to {self._pending_downstreams[0]}")
+            logger.debug(f"[PHASE 4] {self} --({self._items[0]})-> {self._pending_downstreams[0]}")
             self._pending_downstreams[0]._input, self._items[0] = self._items[0], None
         
     def _can_accept(self, upstream: 'Component', path: Set['Component']) -> bool:
@@ -41,15 +50,15 @@ class Converger(Component):
         
         # cycle detection
         if self in path:
-            logger.debug(f"[PHASE 2] {self} detects cycle in path {path}")
+            logger.debug(f"[PHASE 3] {self} detects cycle in path {path}")
             # this should not be cached
             return False
         
         if self._can_accept_cache.get(upstream) is not None:
-            logger.debug(f"[PHASE 2] {self} can accept from {upstream} (cached)")
+            logger.debug(f"[PHASE 3] {self} --(can accept)--> {upstream} (cached)")
             return self._can_accept_cache[upstream]
         
-        if upstream == self._upstreams[self._rr_index]:
+        if upstream != self._upstreams[self._rr_index]:
             self._can_accept_cache[upstream] = False
             return False
         
@@ -65,8 +74,13 @@ class Converger(Component):
         path.remove(self)
         
         if self._can_accept_cache[upstream]:
-            logger.debug(f"[PHASE 2] {self} can accept from {upstream}")
+            logger.debug(f"[PHASE 3] {self} --(can accept)--> {upstream}")
         else:
-            logger.debug(f"[PHASE 2] {self} can not accept from {upstream}")
+            logger.debug(f"[PHASE 3] {self} --(cannot accept)--> {upstream}")
             
         return self._can_accept_cache[upstream]
+    
+    def _reset(self) -> None:
+        super()._reset()
+        
+        self._selected_upstream = None

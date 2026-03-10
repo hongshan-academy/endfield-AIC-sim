@@ -25,15 +25,18 @@ class TestSplitter(object):
         for _ in range(11):
             for component in components:
                 component._phase_1_request()
+                    
+            for component in components:
+                component._phase_2_adjudicate()
                 
             for component in components:
-                component._phase_2_response()
+                component._phase_3_response()
 
             for component in components:
-                component._phase_3_send()
+                component._phase_4_send()
 
             for component in components:
-                component._phase_4_commit()
+                component._phase_5_commit()
 
             trace.append((
                 [item.id + 1 if item else 0 for item in conveyor_3._items], 

@@ -47,3 +47,5 @@ target/
 Thumbs.db
 
 .vscode
+
+visualize.py
