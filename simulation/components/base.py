@@ -1,4 +1,4 @@
-from typing import Optional, List, Set
+from typing import Optional, List, Dict, Set
 import logging
 
 from ..item import Item
@@ -18,7 +18,7 @@ class Component(object):
     # transient flags/variables
     _pending_upstreams:   List['Component']
     _pending_downstreams: List['Component']
-    _can_accept_cache: Optional[bool]
+    _can_accept_cache: Dict['Component', bool]
     _phase_1_visited: Set['Component']
     
     # for debug
@@ -73,20 +73,17 @@ class Component(object):
         
         path.remove(self)
     
-    def _phase_2_adjudicate(self) -> None:
-        pass
-    
-    def _phase_3_response(self) -> None:
+    def _phase_2_response(self) -> None:
         if not self._pending_upstreams:
-            logger.debug(f"[PHASE 3] {self} has no pending upstreams")
+            logger.debug(f"[PHASE 2] {self} has no pending upstreams")
             return
         
         for upstream in self._pending_upstreams:
-            if self._can_accept(set(), upstream):
-                logger.debug(f"[PHASE 3] {self} grants {upstream}")
+            if self._can_accept(upstream, set()):
+                logger.debug(f"[PHASE 2] {self} grants {upstream}")
                 self._grant(upstream)
     
-    def _phase_4_send(self) -> None:
+    def _phase_3_send(self) -> None:
         # for conveyor/converger:
         #    downstream grants `push` -> push
         # for splitter:
@@ -94,7 +91,7 @@ class Component(object):
         
         raise NotImplementedError
     
-    def _phase_5_commit(self) -> None:
+    def _phase_4_commit(self) -> None:
         # update & reset
     
         for i in range(len(self._items) - 1):
@@ -102,7 +99,7 @@ class Component(object):
                 self._items[i], self._items[i + 1] = self._items[i + 1], self._items[i]
         
         if self._items[-1] is None:
-            logger.debug(f"[PHASE 5] {self} accepts {self._input}")
+            logger.debug(f"[PHASE 4] {self} accepts {self._input}")
             self._items[-1], self._input = self._input, None      
                 
         self._reset()
@@ -118,7 +115,7 @@ class Component(object):
     def _grant(self, upstream: "Component") -> None:
         upstream._pending_downstreams.append(self)
     
-    def _can_accept(self, path: Set['Component'], upstream: Optional['Component'] = None) -> bool:
+    def _can_accept(self, upstream: 'Component', path: Set['Component']) -> bool:
         # | downstream     | [current]      | behaviour |
         # | -------------- | -------------- | --------- |
         # | ~              | has-empty-slot | grant     |
@@ -127,29 +124,36 @@ class Component(object):
         
         # cycle detection
         if self in path:
-            logger.debug(f"[PHASE 3] {self} detects cycle in path {path}")
+            logger.debug(f"[PHASE 2] {self} detects cycle in path {path}")
             # this should not be cached
             return False
         
-        if self._can_accept_cache is not None:
-            logger.debug(f"[PHASE 3] {self} uses cached can_accept value: {self._can_accept_cache}")
-            return self._can_accept_cache
+        if self._can_accept_cache.get(upstream) is not None:
+            logger.debug(f"[PHASE 2] {self} can accept from {upstream} (cached)")
+            return self._can_accept_cache[upstream]
         
         path.add(self)
         
         if self._has_empty_slot():
-            self._can_accept_cache = True
+            self._can_accept_cache[upstream] = True
         else:
-            self._can_accept_cache = any(downstream._can_accept(path, self) for downstream in self._downstreams)
+            self._can_accept_cache[upstream] = any(
+                downstream._can_accept(self, path) for downstream in self._downstreams
+            )
         
         path.remove(self)
         
-        return self._can_accept_cache
+        if self._can_accept_cache[upstream]:
+            logger.debug(f"[PHASE 2] {self} can accept from {upstream}")
+        else:
+            logger.debug(f"[PHASE 2] {self} can not accept from {upstream}")
+            
+        return self._can_accept_cache[upstream]
     
     def _reset(self) -> None:
         self._pending_upstreams   = []
         self._pending_downstreams = []
-        self._can_accept_cache = None
+        self._can_accept_cache = {}
         self._phase_1_visited = set()
         
     def __repr__(self) -> str:

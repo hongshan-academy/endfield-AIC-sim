@@ -30,18 +30,20 @@ class TestConverger(object):
         trace = [tuple(
             [item.id + 1 if item else 0 for item in component._items] for component in components[::-1]
         )]
-        for _ in range(10):
+        for _ in range(14):
             for component in components:
                 if isinstance(component, Source):
                     component._phase_1_request()
+                    
             for component in components:
-                component._phase_2_adjudicate()
+                component._phase_2_response()
+
             for component in components:
-                component._phase_3_response()
+                component._phase_3_send()
+
             for component in components:
-                component._phase_4_send()
-            for component in components:
-                component._phase_5_commit()
+                component._phase_4_commit()
+
             trace.append(tuple(
                 [item.id + 1 if item else 0 for item in component._items] for component in components[::-1]
             ))

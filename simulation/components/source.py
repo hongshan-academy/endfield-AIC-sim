@@ -24,14 +24,14 @@ class Source(Component):
         self._items[0] = self._get_item()
         self._input    = None
 
-    def _phase_3_response(self) -> None:
+    def _phase_2_response(self) -> None:
         assert not self._pending_upstreams
         
-    def _phase_4_send(self) -> None:
+    def _phase_3_send(self) -> None:
         assert self._rr_index < len(self._sequence)
         
         if self._pending_downstreams:
-            logger.debug(f"[PHASE 4] {self} sends {self._items[0]} to {self._pending_downstreams[0]}")
+            logger.debug(f"[PHASE 3] {self} sends {self._items[0]} to {self._pending_downstreams[0]}")
             self._pending_downstreams[0]._input, self._items[0] = self._items[0], self._get_item()
     
     # helper methods

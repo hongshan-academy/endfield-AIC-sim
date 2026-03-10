@@ -13,7 +13,7 @@ class Converger(Component):
         
         self._rr_index = 0
     
-    def _phase_2_adjudicate(self) -> None:
+    def _phase_2_response(self) -> None:
         if not self._pending_upstreams:
             return
         
@@ -21,26 +21,18 @@ class Converger(Component):
             self._rr_index = (self._rr_index + 1) % len(self._upstreams)
             upstream = self._upstreams[self._rr_index]
             if upstream in self._pending_upstreams:
-                logger.debug(f"[PHASE 2] {self} selects {upstream} (index={self._rr_index})")
-                break
-    
-    def _phase_3_response(self) -> None:
-        if not self._can_accept(set()):
-            return
-        
-        for upstream in self._pending_upstreams:
-            if self._can_accept(set(), upstream):
-                logger.debug(f"[PHASE 3] {self} grants {upstream}")
+                logger.debug(f"[PHASE 2] {self} grants {upstream}")
                 self._grant(upstream)
+                break
 
-    def _phase_4_send(self) -> None:        
+    def _phase_3_send(self) -> None:        
         assert len(self._pending_downstreams) <= 1, self._pending_downstreams
         
         if self._pending_downstreams:
-            logger.debug(f"[PHASE 4] {self} sends {self._items[0]} to {self._pending_downstreams[0]}")
+            logger.debug(f"[PHASE 3] {self} sends {self._items[0]} to {self._pending_downstreams[0]}")
             self._pending_downstreams[0]._input, self._items[0] = self._items[0], None
-
-    def _can_accept(self, path: Set[Component], upstream: Optional[Component] = None) -> bool:
+        
+    def _can_accept(self, upstream: 'Component', path: Set['Component']) -> bool:
         # | downstream     | [current]      | behaviour |
         # | -------------- | -------------- | --------- |
         # | ~              | has-empty-slot | grant     |
@@ -49,23 +41,32 @@ class Converger(Component):
         
         # cycle detection
         if self in path:
-            logger.debug(f"[PHASE 3] {self} detects cycle in path {path}")
+            logger.debug(f"[PHASE 2] {self} detects cycle in path {path}")
             # this should not be cached
             return False
-                
-        if self._can_accept_cache is not None:
-            logger.debug(f"[PHASE 3] {self} uses cached can_accept value: {self._can_accept_cache}")
-            return self._can_accept_cache
+        
+        if self._can_accept_cache.get(upstream) is not None:
+            logger.debug(f"[PHASE 2] {self} can accept from {upstream} (cached)")
+            return self._can_accept_cache[upstream]
+        
+        if upstream == self._upstreams[self._rr_index]:
+            self._can_accept_cache[upstream] = False
+            return False
         
         path.add(self)
         
         if self._has_empty_slot():
-            self._can_accept_cache = True
-        elif self._pending_downstreams is None:
-            self._can_accept_cache = False
+            self._can_accept_cache[upstream] = True
         else:
-            self._can_accept_cache = self._upstreams[self._rr_index] == upstream
+            self._can_accept_cache[upstream] = any(
+                downstream._can_accept(self, path) for downstream in self._downstreams
+            )
         
         path.remove(self)
         
-        return self._can_accept_cache
+        if self._can_accept_cache[upstream]:
+            logger.debug(f"[PHASE 2] {self} can accept from {upstream}")
+        else:
+            logger.debug(f"[PHASE 2] {self} can not accept from {upstream}")
+            
+        return self._can_accept_cache[upstream]

@@ -9,12 +9,12 @@ class Conveyor(Component):
     def __init__(self, capacity: int, name: str = '') -> None:
         super(Conveyor, self).__init__(capacity, name)
     
-    def _phase_3_response(self) -> None:
+    def _phase_2_response(self) -> None:
         assert len(self._pending_upstreams) <= 1
         
-        super(Conveyor, self)._phase_3_response()
+        super(Conveyor, self)._phase_2_response()
     
-    def _phase_4_send(self) -> None:        
+    def _phase_3_send(self) -> None:        
         assert len(self._pending_downstreams) <= 1, self._pending_downstreams
         
         if self._pending_downstreams:

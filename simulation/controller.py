@@ -13,13 +13,10 @@ class Controller(object):
                 component._phase_1_request()
         
         for component in self._components:
-            component._phase_2_adjudicate()
+            component._phase_2_response()
         
         for component in self._components:
-            component._phase_3_response()
+            component._phase_3_send()
         
         for component in self._components:
-            component._phase_4_send()
-        
-        for component in self._components:
-            component._phase_5_commit()
+            component._phase_4_commit()

@@ -12,12 +12,12 @@ class Splitter(Component):
         
         self._rr_index = 0
     
-    def _phase_3_response(self) -> None:
+    def _phase_2_response(self) -> None:
         assert len(self._pending_upstreams) <= 1
         
-        super(Splitter, self)._phase_3_response()
+        super(Splitter, self)._phase_2_response()
     
-    def _phase_4_send(self) -> None:
+    def _phase_3_send(self) -> None:
         if not self._pending_downstreams:
             return
         
@@ -25,6 +25,6 @@ class Splitter(Component):
             self._rr_index = (self._rr_index + 1) % len(self._downstreams)
             downstream = self._downstreams[self._rr_index]
             if downstream in self._pending_downstreams:
-                logger.debug(f"[PHASE 4] {self} sends {self._items[0]} to {self._downstreams[self._rr_index]} (index={self._rr_index})")
+                logger.debug(f"[PHASE 3] {self} sends {self._items[0]} to {self._downstreams[self._rr_index]} (index={self._rr_index})")
                 downstream._input, self._items[0] = self._items[0], None
                 break
