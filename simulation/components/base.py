@@ -73,20 +73,23 @@ class Component(object):
         
         path.remove(self)
     
-    def _phase_2_response(self) -> None:
+    def _phase_2_adjudicate(self) -> None:
+        pass
+    
+    def _phase_3_response(self) -> None:
         if not self._pending_upstreams:
-            logger.debug(f"[PHASE 2] {self} has no pending upstreams")
+            logger.debug(f"[PHASE 3] {self} has no pending upstreams")
             return
         
         if not self._can_accept(set()):
-            logger.debug(f"[PHASE 2] {self} cannot accept")
+            logger.debug(f"[PHASE 3] {self} cannot accept")
             return
         
         for upstream in self._pending_upstreams:
-            logger.debug(f"[PHASE 2] {self} grants {upstream}")
+            logger.debug(f"[PHASE 3] {self} grants {upstream}")
             self._grant(upstream)
     
-    def _phase_3_send(self) -> None:
+    def _phase_4_send(self) -> None:
         # for conveyor/converger:
         #    downstream grants `push` -> push
         # for splitter:
@@ -94,7 +97,7 @@ class Component(object):
         
         raise NotImplementedError
     
-    def _phase_4_commit(self) -> None:
+    def _phase_5_commit(self) -> None:
         # update & reset
     
         for i in range(len(self._items) - 1):
@@ -102,7 +105,7 @@ class Component(object):
                 self._items[i], self._items[i + 1] = self._items[i + 1], self._items[i]
         
         if self._items[-1] is None:
-            logger.debug(f"[PHASE 4] {self} accepts {self._input}")
+            logger.debug(f"[PHASE 5] {self} accepts {self._input}")
             self._items[-1], self._input = self._input, None      
                 
         self._reset()
@@ -118,7 +121,7 @@ class Component(object):
     def _grant(self, upstream: "Component") -> None:
         upstream._pending_downstreams.append(self)
     
-    def _can_accept(self, path: Set['Component']) -> bool:
+    def _can_accept(self, path: Set['Component'], upstream: Optional['Component'] = None) -> bool:
         # | downstream     | [current]      | behaviour |
         # | -------------- | -------------- | --------- |
         # | ~              | has-empty-slot | grant     |
@@ -127,12 +130,12 @@ class Component(object):
         
         # cycle detection
         if self in path:
-            logger.debug(f"[PHASE 2] {self} detects cycle in path {path}")
+            logger.debug(f"[PHASE 3] {self} detects cycle in path {path}")
             # this should not be cached
             return False
         
         if self._can_accept_cache is not None:
-            logger.debug(f"[PHASE 2] {self} uses cached can_accept value: {self._can_accept_cache}")
+            logger.debug(f"[PHASE 3] {self} uses cached can_accept value: {self._can_accept_cache}")
             return self._can_accept_cache
         
         path.add(self)

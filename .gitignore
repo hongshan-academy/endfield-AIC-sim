@@ -26,6 +26,7 @@ node_modules/
 
 # Coverage and testing
 .coverage
+.pytest_cache
 coverage/
 htmlcov/
 
@@ -44,3 +45,5 @@ target/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+.vscode
