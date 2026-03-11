@@ -24,9 +24,7 @@ class Component(object):
     # for debug
     name: str
     
-    def __init__(self, capacity: int, name: str = '') -> None:
-        self._visited = [False, False]
-        
+    def __init__(self, capacity: int, name: str = '') -> None:        
         self._items = [None] * capacity
         self._input = None
         
@@ -131,7 +129,11 @@ class Component(object):
             return False
         
         if self._can_accept_cache.get(upstream) is not None:
-            logger.debug(f"[PHASE 3] {self} --(can accept)-> {upstream} (cached)")
+            if self._can_accept_cache[upstream]:
+                logger.debug(f"[PHASE 3] {self} --(can accept)-> {upstream} (cached)")
+            else:
+                logger.debug(f"[PHASE 3] {self} --(cannot accept)-> {upstream} (cached)")
+                
             return self._can_accept_cache[upstream]
         
         path.add(self)

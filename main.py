@@ -1,4 +1,4 @@
-from tests.components.test_converger import TestConverger
+from tests.simulation.components.test_converger import TestConverger
 import logging
 
 if __name__ == '__main__':
@@ -10,3 +10,4 @@ if __name__ == '__main__':
     
     t = TestConverger()
     t.test_blockage_2()
+    # t.test_priority()

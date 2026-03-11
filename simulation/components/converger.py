@@ -21,7 +21,7 @@ class Converger(Component):
         for _ in range(len(self._upstreams)):
             self._rr_index = (self._rr_index + 1) % len(self._upstreams)
             upstream = self._upstreams[self._rr_index]
-            if upstream in self._pending_upstreams:
+            if upstream in self._pending_upstreams and self._can_accept(upstream, set()):
                 logger.debug(f"[PHASE 2] {self} --(select)-> {upstream} (index={self._rr_index})")
                 self._selected_upstream = upstream
                 break
@@ -31,7 +31,7 @@ class Converger(Component):
             logger.debug(f'[PHASE 3] {self}: no requests received')
             return
 
-        if self._selected_upstream and self._can_accept(self._selected_upstream, set()):
+        if self._selected_upstream:
             self._grant(self._selected_upstream)
 
     def _phase_4_send(self) -> None:        
@@ -55,7 +55,11 @@ class Converger(Component):
             return False
         
         if self._can_accept_cache.get(upstream) is not None:
-            logger.debug(f"[PHASE 3] {self} --(can accept)--> {upstream} (cached)")
+            if self._can_accept_cache[upstream]:
+                logger.debug(f"[PHASE 3] {self} --(can accept)--> {upstream} (cached)")
+            else:
+                logger.debug(f"[PHASE 3] {self} --(cannot accept)--> {upstream} (cached)")
+                
             return self._can_accept_cache[upstream]
         
         if upstream != self._upstreams[self._rr_index]:

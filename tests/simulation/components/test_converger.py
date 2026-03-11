@@ -188,7 +188,6 @@ class TestConverger(object):
         conveyors[2].connect_to(converger)
         conveyors[3].connect_to(sink)
         
-        
         components: List[Component] = [source, *conveyors, converger, splitter, sink]
         trace = [tuple(
             tuple((item.id + 1) if item else 0 for item in component._items) for component in components[::-1]
@@ -218,24 +217,24 @@ class TestConverger(object):
     
     def test_blockage_2(self):
         conveyors = [
-            Conveyor(1, 'i'), 
+            Conveyor(1, '0'), 
             Conveyor(1, '1'), 
-            Conveyor(1, 'o'), 
-            Conveyor(5, '2'), 
-            Conveyor(1, '3'), 
+            Conveyor(1, '2'), 
+            Conveyor(5, '3'), 
             Conveyor(1, '4'), 
-            Conveyor(5, '5'), 
-            Conveyor(1, '6')
+            Conveyor(1, '5'), 
+            Conveyor(1, '6'), 
+            Conveyor(5, '7')
         ]
         
         convergers = [
-            Converger('1'), 
-            Converger('2')
+            Converger('0'), 
+            Converger('1')
         ]
         
         splitters = [
-            Splitter('1'), 
-            Splitter('2')
+            Splitter('0'), 
+            Splitter('1')
         ]
         
         source = Source(['A'])
@@ -245,23 +244,24 @@ class TestConverger(object):
         conveyors[0].connect_to(convergers[0])
         convergers[0].connect_to(conveyors[1])
         conveyors[1].connect_to(splitters[0])
+        splitters[0].connect_to(conveyors[4])
+        splitters[0].connect_to(conveyors[3])
         splitters[0].connect_to(conveyors[2])
         conveyors[2].connect_to(sink)
-        splitters[0].connect_to(conveyors[3])
         conveyors[3].connect_to(convergers[1])
-        splitters[0].connect_to(splitters[1])
-        splitters[1].connect_to(conveyors[7])
-        conveyors[7].connect_to(convergers[1])
+        convergers[1].connect_to(conveyors[7])
+        conveyors[7].connect_to(convergers[0])
+        conveyors[4].connect_to(splitters[1])
         splitters[1].connect_to(conveyors[5])
         conveyors[5].connect_to(convergers[0])
-        convergers[1].connect_to(conveyors[6])
-        conveyors[6].connect_to(convergers[0])
+        splitters[1].connect_to(conveyors[6])
+        conveyors[6].connect_to(convergers[1])
         
         components: List[Component] = [source, *conveyors, *convergers, *splitters, sink]
         trace = [tuple(
             tuple((item.id + 1) if item else 0 for item in component._items) for component in components[::-1]
         )]
-        for _ in range(50):
+        for _ in range(100):
             for component in components:
                 component._phase_1_request()
                     
@@ -283,6 +283,7 @@ class TestConverger(object):
         
         for t in trace:
             print(t)
+        print(sink._received_items)
         
     def test_blockage_3(self):
         source = Source(['A'])
@@ -376,3 +377,52 @@ class TestConverger(object):
     def test_blockage_4(self):
         pass
 
+    def test_priority(self):
+        source_0 = Source(['A'])
+        source_1 = Source(['B'])
+        sink = Sink()
+        
+        conveyor_0 = Conveyor(1, '0')
+        conveyor_1 = Conveyor(1, '1')
+        conveyor_2 = Conveyor(1, '1')
+        
+        splitter = Splitter()
+        converger = Converger()
+        
+        source_0.connect_to(conveyor_0)
+        source_1.connect_to(conveyor_1)
+        
+        conveyor_0.connect_to(converger)
+        conveyor_1.connect_to(splitter)
+        splitter.connect_to(converger)
+        splitter.connect_to(conveyor_2)
+        conveyor_2.connect_to(sink)
+        
+        
+        components: List[Component] = [source_0, source_1, conveyor_0, conveyor_1, conveyor_2, converger, splitter, sink]
+        trace = [tuple(
+            tuple((item.id + 1) if item else 0 for item in component._items) for component in components[::-1]
+        )]
+        for _ in range(20):
+            for component in components:
+                component._phase_1_request()
+                    
+            for component in components:
+                component._phase_2_adjudicate()
+                    
+            for component in components:
+                component._phase_3_response()
+
+            for component in components:
+                component._phase_4_send()
+
+            for component in components:
+                component._phase_5_commit()
+            
+            trace.append(tuple(
+                tuple((item.id + 1) if item else 0 for item in component._items) for component in components[::-1]
+            ))
+        
+        for t in trace:
+            print(t)
+        print(sink._received_items)

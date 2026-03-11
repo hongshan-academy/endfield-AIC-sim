@@ -21,7 +21,9 @@ class Sink(Component):
         assert not self._pending_downstreams
     
     def _phase_5_commit(self) -> None:
-        self._items[-1], self._input = self._input, None      
+        self._items[-1], self._input = self._input, None
+        if self._items[0] is not None:
+            self._received_items.append(self._items[0])      
         self._reset()
         
     def _can_accept(self, upstream: Optional[Component], path: Set[Component]) -> bool:
