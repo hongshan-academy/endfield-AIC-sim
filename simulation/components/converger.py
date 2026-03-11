@@ -15,7 +15,7 @@ class Converger(Component):
         self._rr_index = 0
     
     def _phase_1_request(self, *args, **kwargs) -> None:
-        super()._phase_1_request(*args, **kwargs)
+        super(Converger, self)._phase_1_request(*args, **kwargs)
         
     def _phase_2_adjudicate(self) -> None:
         for _ in range(len(self._upstreams)):
@@ -85,6 +85,6 @@ class Converger(Component):
         return self._can_accept_cache[upstream]
     
     def _reset(self) -> None:
-        super()._reset()
+        super(Converger, self)._reset()
         
         self._selected_upstream = None
