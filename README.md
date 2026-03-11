@@ -1,44 +1,36 @@
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant S as Source
-    participant C as Conveyor
-    participant CG as Converger
-    participant D as Downstream
+    participant U as upstream
+    participant M as midstream
+    participant D as downstream
 
-    rect rgb(30, 50, 80)
-        note over S, D: Phase 1: Request (Propagation)
-        S->>C: _phase_1_request(upstream=None)
-        activate C
-        C->>C: add self to path
-        C->>CG: _phase_1_request(self) if want_to_send
-        activate CG
-        CG->>D: _phase_1_request(self) if want_to_send
-        deactivate CG
-        deactivate C
+    rect rgb(120, 60, 160)
+        note over U, D: Phase 1: Request
+        U->>M: Request
+        M->>D: Request
     end
 
-    rect rgb(30, 80, 50)
-        note over S, D: Phase 2: Response (Grant/Block)
-        D-->>CG: can_accept? (recursive check)
-        CG-->>CG: Round-Robin selection
-        CG-->>C: _grant (if selected)
-        C-->>C: has_empty_slot or downstream.can_accept
-        C-->>S: _grant (if can accept)
+    rect rgb(180, 60, 120)
+        note over U, D: Phase 2: Adjudicate
+        D-->>M: Select
+        M-->>U: Grant
     end
 
-    rect rgb(80, 50, 30)
-        note over S, D: Phase 3: Computation (Transfer)
-        S->>C: send item to C._input
-        C->>CG: send front item (if granted)
-        CG->>D: send item to downstream._input
+    rect rgb(60, 100, 180)
+        note over U, D: Phase 3: Response
+        U->>M: Transfer
+        M->>D: Transfer
     end
 
-    rect rgb(60, 30, 80)
-        note over S, D: Phase 4: Commit (Update State)
-        C->>C: shift items, accept input
-        CG->>CG: accept input, clear state
-        D->>D: shift items, accept input
-        note over S, D: Reset transient flags for next cycle
+    rect rgb(60, 160, 120)
+        note over U, D: Phase 4: Send
+        M->>D: Push Item
+    end
+
+    rect rgb(180, 120, 60)
+        note over U, D: Phase 5: Commit
+        U->>U: Reset
+        M->>M: Shift
+        D->>D: Record
     end
 ```

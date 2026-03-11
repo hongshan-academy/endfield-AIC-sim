@@ -9,5 +9,5 @@ if __name__ == '__main__':
     )
     
     t = TestConverger()
-    t.test_blockage_2()
-    # t.test_priority()
+    # t.test_blockage_3()
+    t.test_converger_cycle()
