@@ -1,3 +1,5 @@
+## 时序图
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -42,4 +44,35 @@ sequenceDiagram
         C->>C: shift items, accept input, reset flags
         D->>D: collect item, reset flags
     end
+```
+
+## 测试情况
+
+- 还未能实现分流器-汇流器直接相连时的优先级（测试失败）
+- 还未测试“阻尼”现象，猜测多半无法实现（其应该和有限集有相同的诱发原因）
+
+## Usage
+
+```python
+from simulation import *
+
+# 建立组件列表
+components = [
+    ...
+]
+
+# 连接组件
+# upstream.connect_to(downstream)
+components[...].connect_to(...)
+components[...].connect_to(...)
+components[...].connect_to(...)
+...
+
+# 模拟 (方式 1)
+controller = Controller(components)
+for _ in range(total_ticks):
+    controller.step()
+
+# 模拟 (方式 2)
+run_simulation(components, total_ticks)
 ```
