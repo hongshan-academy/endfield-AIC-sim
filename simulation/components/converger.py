@@ -18,9 +18,6 @@ class Converger(Component):
         
     def _phase_2_adjudicate(self) -> None:
         assert not self._has_received_item
-                
-        if not self._pending_upstreams:
-            return
         
         for _ in range(len(self._upstreams)):
             self._rr_index = (self._rr_index + 1) % len(self._upstreams)
@@ -32,22 +29,13 @@ class Converger(Component):
         
     def _phase_3_response(self) -> None:
         assert not self._has_received_item
-        
-        if not self._pending_upstreams:
-            logger.debug(f'[PHASE 3] \"{self}\": no requests received')
-            return
 
         if self._selected_upstream:
             self._grant(self._selected_upstream)
 
-    def _phase_4_send(self) -> None:
-        if self._has_sent_item:
-            return
-        
+    def _phase_4_send(self) -> None:        
         assert len(self._pending_downstreams) <= 1, self._pending_downstreams
-        
-        if self._pending_downstreams:
-            self._send_item(phase=4)
+        self._send_item(phase=4)
         
     def _can_accept(self, upstream: 'Component', path: Set['Component'], phase=3) -> bool:
         # | downstream     | [current]      | behaviour |

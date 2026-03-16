@@ -1,4 +1,7 @@
 from simulation.components import Conveyor, Source, Component
+from simulation import Controller
+
+from ..utils import trace_id
 
 from typing import List
 
@@ -15,40 +18,17 @@ class TestConveyor(object):
         conveyor_1.connect_to(conveyor_2)
         
         components: List[Component] = [source, conveyor_3, conveyor_1, conveyor_2]
-        trace = [(
-            [item.id + 1 if item else 0 for item in conveyor_2._items], 
-            [item.id + 1 if item else 0 for item in conveyor_1._items], 
-            [item.id + 1 if item else 0 for item in conveyor_3._items], 
-            [item.id + 1 if item else 0 for item in source._items], 
-        )]
+        controller = Controller(components)
+        trace = [trace_id(components)]
         for _ in range(8):
-            for component in components:
-                component._phase_1_request()
-                
-            for component in components:
-                component._phase_2_adjudicate()
-                
-            for component in components:
-                component._phase_3_response()
-                
-            for component in components:
-                component._phase_4_send()
-                
-            for component in components:
-                component._phase_5_commit()
-                
-            trace.append((
-                [item.id + 1 if item else 0 for item in conveyor_2._items], 
-                [item.id + 1 if item else 0 for item in conveyor_1._items], 
-                [item.id + 1 if item else 0 for item in conveyor_3._items], 
-                [item.id + 1 if item else 0 for item in source._items], 
-            ))
+            controller.step()
+            trace.append(trace_id(components))
         
-        assert trace[0] == ([0, 0, 0], [0, 0], [0], [1])
-        assert trace[1] == ([0, 0, 0], [0, 0], [1], [2]), trace
-        assert trace[2] == ([0, 0, 0], [0, 1], [2], [3])
-        assert trace[3] == ([0, 0, 0], [1, 2], [3], [4])
-        assert trace[4] == ([0, 0, 1], [2, 3], [4], [5])
-        assert trace[5] == ([0, 1, 2], [3, 4], [5], [6])
-        assert trace[6] == ([1, 2, 3], [4, 5], [6], [7])
-        assert trace[7] == ([1, 2, 3], [4, 5], [6], [7])
+        assert trace[0] == ((1,), (0,), (0, 0), (0, 0, 0)), trace[0]
+        assert trace[1] == ((2,), (1,), (0, 0), (0, 0, 0)), trace[1]
+        assert trace[2] == ((3,), (2,), (0, 1), (0, 0, 0)), trace[2]
+        assert trace[3] == ((4,), (3,), (1, 2), (0, 0, 0)), trace[3]
+        assert trace[4] == ((5,), (4,), (2, 3), (0, 0, 1)), trace[4]
+        assert trace[5] == ((6,), (5,), (3, 4), (0, 1, 2)), trace[5]
+        assert trace[6] == ((7,), (6,), (4, 5), (1, 2, 3)), trace[6]
+        assert trace[7] == ((7,), (6,), (4, 5), (1, 2, 3)), trace[7]

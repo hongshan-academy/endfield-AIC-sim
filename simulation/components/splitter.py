@@ -29,10 +29,6 @@ class Splitter(Component):
             upstream (Optional[&#39;Component&#39;], optional): _description_. Defaults to None.
             path (Optional[Set[&#39;Component&#39;]], optional): _description_. Defaults to None.
         """
-        
-        if self._has_received_item or self._has_sent_item:
-            return
-        
         if upstream is not None and upstream in self._phase_1_visited:
             return
         
@@ -66,20 +62,11 @@ class Splitter(Component):
         path.remove(self)
     
     def _phase_3_response(self) -> None:
-        if self._has_received_item:
-            return
-        
         assert len(self._pending_upstreams) <= 1
         
         super(Splitter, self)._phase_3_response()
     
-    def _phase_4_send(self) -> None:
-        if self._has_sent_item:
-            return
-        
-        if not self._pending_downstreams:
-            return
-        
+    def _phase_4_send(self) -> None:        
         for _ in range(len(self._downstreams)):
             self._rr_index = (self._rr_index + 1) % len(self._downstreams)
             downstream = self._downstreams[self._rr_index]

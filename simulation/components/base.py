@@ -51,6 +51,41 @@ class Component(object):
             self._downstreams.append(downstream)
             downstream._upstreams.append(self)
     
+    # phases interfaces
+    def phase_1_tick(self) -> None:
+        self._phase_1_request()
+    
+    def phase_2_tick(self) -> None:
+        if self._has_received_item:
+            return
+        
+        self._phase_2_adjudicate()
+    
+    def phase_3_tick(self) -> None:
+        if self._has_received_item:
+            return
+        
+        if not self._pending_upstreams:
+            logger.debug(f"[PHASE 3] \"{self}\" has no pending upstreams")
+            return
+        
+        self._phase_3_response()
+    
+    def phase_4_tick(self) -> None:
+        if self._has_sent_item:
+            return
+        
+        if not self._pending_downstreams:
+            logger.debug(f"[PHASE 4] \"{self}\" has no pending downstreams")
+            return
+        
+        self._phase_4_send()
+    
+    def phase_5_tick(self) -> None:
+        self._phase_5_commit()
+    
+        self._reset()
+        
     # phases method
     def _phase_1_request(
         self, 
@@ -62,13 +97,9 @@ class Component(object):
         向下游发送递送请求. 
         
         Args:
-            upstream (Optional[&#39;Component&#39;], optional): _description_. Defaults to None.
-            path (Optional[Set[&#39;Component&#39;]], optional): _description_. Defaults to None.
+            upstream (Optional[&#39;Component&#39;], optional): 上游请求发送方. Defaults to None.
+            path (Optional[Set[&#39;Component&#39;]], optional): 递归路径. Defaults to None.
         """
-        
-        # TODO: 剪枝
-        # 1. 普通器件下游（非汇流/units）空 -> 直接递送
-        # 2. 分流器 _rr_index + i 下游（非汇流/units）空 -> 直接递送
         
         if upstream is not None and upstream in self._phase_1_visited:
             return
@@ -104,21 +135,13 @@ class Component(object):
         
         可能出现满/阻塞的、需要对下游进行选择的器件需要实现这个方法. 该方法用于对下游请求进行裁决/选择. 
         """
-        if self._has_received_item:
-            return
+        pass
     
     def _phase_3_response(self) -> None:
         """_phase 3_
         
         拒绝/接受上游的请求. 
-        """
-        if self._has_received_item:
-            return
-        
-        if not self._pending_upstreams:
-            logger.debug(f"[PHASE 3] \"{self}\" has no pending upstreams")
-            return
-        
+        """        
         for upstream in self._pending_upstreams:
             if self._can_accept(upstream, set()):
                 logger.debug(f"[PHASE 3] \"{self}\" --(grants)-> \"{upstream}\"")
@@ -128,17 +151,13 @@ class Component(object):
         """_phase 4_
         
         根据先前的请求-裁决-批准的结果向下游传递物品. 
-        """
-        if self._has_sent_item:
-            return
-        
+        """        
         # for conveyor/converger:
         #    downstream grants `push` -> push
         # for splitter:
         #    make selection based on the Round-Robin index
         
-        if self._pending_downstreams:
-            self._send_item(phase=4)
+        self._send_item(phase=4)
     
     def _phase_5_commit(self) -> None:
         """_phase 5_
@@ -151,8 +170,6 @@ class Component(object):
         
         if self._items[-1] is None:
             self._items[-1], self._input = self._input, None
-        
-        self._reset()
     
     # component-specific methods
     def _want_to_send(self) -> bool:
@@ -185,9 +202,9 @@ class Component(object):
         | full           | full           | recursion |
         
         Args:
-            upstream (Component): _description_
-            path (Set[&#39;Component&#39;]): _description_
-            phase (int, optional): _description_. Defaults to 3.
+            upstream (Component): 上游请求发送方. 
+            path (Set[&#39;Component&#39;]): 递归路径
+            phase (int, optional): 调用时所处的阶段，用于日志. Defaults to 3.
 
         Returns:
             bool: 是否可以接受. 
@@ -227,9 +244,6 @@ class Component(object):
     
     def _send_item(self, phase: int = 4) -> None:
         """向下游递送物品. 
-
-        Raises:
-            NotImplementedError: 每个器件必须实现这个方法. 
         """
         
         item, self._items[0] = self._items[0], None
