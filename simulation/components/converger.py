@@ -35,6 +35,7 @@ class Converger(Component):
 
     def _phase_4_send(self) -> None:        
         assert len(self._pending_downstreams) <= 1, self._pending_downstreams
+        
         self._send_item(phase=4)
         
     def _can_accept(self, upstream: 'Component', path: Set['Component'], phase=3) -> bool:
