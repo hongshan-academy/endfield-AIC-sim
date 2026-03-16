@@ -25,6 +25,4 @@ class PlacedConveyer(object):
     
     def __init__(self, trace: Tuple[int, int, int, int], length: int) -> None:
         self.trace = trace
-        self.component = Conveyor(capacity=length, name='Conveyor%s' % (trace))
-
-    
+        self.component = Conveyor(capacity=length, name=f'Conveyor{trace}')

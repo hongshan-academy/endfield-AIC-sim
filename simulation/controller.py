@@ -11,19 +11,19 @@ class Controller(object):
     
     def step(self) -> None:
         for component in self._components:
-            component._phase_1_request()
+            component.phase_1_tick()
                     
         for component in self._components:
-            component._phase_2_adjudicate()
+            component.phase_2_tick()
         
         for component in self._components:
-            component._phase_3_response()
+            component.phase_3_tick()
         
         for component in self._components:
-            component._phase_4_send()
+            component.phase_4_tick()
         
         for component in self._components:
-            component._phase_5_commit()
+            component.phase_5_tick()
 
 def run_simulation(components: List[Component], total_ticks: int):
     controller = Controller(components)
