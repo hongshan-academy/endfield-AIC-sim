@@ -53,11 +53,10 @@ class Inventory(object):
         # 1. has empty item stack
         # 2. has item & c < 50
         for k, v in self._inventory:
-            match k:
-                case None:
-                    return 50
-                case item_name if 0 <= v < 50:
-                    return 50 - v
+            if k is None:
+                return 50
+            elif 0 <= v < 50:
+                return 50 - v
         
         return 0
                     

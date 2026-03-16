@@ -58,7 +58,7 @@ class Unit(object):
             return
         
         if upstream is not None:
-            logger.debug(f"[PHASE 1] {upstream} --(requests)-> {self}")
+            logger.debug(f"[PHASE 1] \"{upstream}\" --(requests)-> \"{self}\"")
             self._pending_upstreams.append(upstream)
             self._phase_1_visited.add(upstream)
             
@@ -75,12 +75,12 @@ class Unit(object):
     
     def _phase_3_response(self) -> None:
         if not self._pending_upstreams:
-            logger.debug(f"[PHASE 3] {self} has no pending upstreams")
+            logger.debug(f"[PHASE 3] \"{self}\" has no pending upstreams")
             return
         
         for upstream in self._pending_upstreams:
             if self._can_accept(upstream, set()):
-                logger.debug(f"[PHASE 3] {self} --(grants)-> {upstream}")
+                logger.debug(f"[PHASE 3] \"{self}\" --(grants)-> \"{upstream}\"")
                 self._grant(upstream)
     
     def _phase_4_send(self) -> None:
@@ -100,8 +100,6 @@ class Unit(object):
         
         if self._items[-1] is None:
             self._items[-1], self._input = self._input, None      
-                
-        self._reset()
     
     # Unit-specific methods
     def _want_to_send(self) -> bool:
@@ -123,15 +121,15 @@ class Unit(object):
         
         # cycle detection
         if self in path:
-            logger.debug(f"[PHASE 3] {self} detects cycle in path {path}")
+            logger.debug(f"[PHASE 3] \"{self}\" detects cycle in path {path}")
             # this should not be cached
             return False
         
         if self._can_accept_cache.get(upstream) is not None:
             if self._can_accept_cache[upstream]:
-                logger.debug(f"[PHASE 3] {self} --(can accept)-> {upstream} (cached)")
+                logger.debug(f"[PHASE 3] \"{self}\" --(can accept)-> \"{upstream}\" (cached)")
             else:
-                logger.debug(f"[PHASE 3] {self} --(cannot accept)-> {upstream} (cached)")
+                logger.debug(f"[PHASE 3] \"{self}\" --(cannot accept)-> \"{upstream}\" (cached)")
                 
             return self._can_accept_cache[upstream]
         
@@ -147,9 +145,9 @@ class Unit(object):
         path.remove(self)
         
         if self._can_accept_cache[upstream]:
-            logger.debug(f"[PHASE 3] {self} --(can accept)-> {upstream}")
+            logger.debug(f"[PHASE 3] \"{self}\" --(can accept)-> \"{upstream}\"")
         else:
-            logger.debug(f"[PHASE 3] {self} --(cannot accept)-> {upstream}")
+            logger.debug(f"[PHASE 3] \"{self}\" --(cannot accept)-> \"{upstream}\"")
             
         return self._can_accept_cache[upstream]
     

@@ -45,7 +45,7 @@ class TestConveyor(object):
             ))
         
         assert trace[0] == ([0, 0, 0], [0, 0], [0], [1])
-        assert trace[1] == ([0, 0, 0], [0, 0], [1], [2])
+        assert trace[1] == ([0, 0, 0], [0, 0], [1], [2]), trace
         assert trace[2] == ([0, 0, 0], [0, 1], [2], [3])
         assert trace[3] == ([0, 0, 0], [1, 2], [3], [4])
         assert trace[4] == ([0, 0, 1], [2, 3], [4], [5])

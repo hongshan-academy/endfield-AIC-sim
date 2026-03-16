@@ -47,54 +47,40 @@ class TestConverger(object):
             controller.step()
             trace.append(self.trace_id(components))
         
-        assert trace[-1][-2] == (1, 1, 2, 2, 1, 3, 3, 2, 4, 4)
+        assert trace[-1][-2] == (1, 1, 2, 2, 1, 3, 3, 2, 4, 4), trace
     
     def test_converger_order_invariance(self):
         random.seed(42)
 
-        converger = Converger('*')
-        conveyor_1 = Conveyor(4, '1')
-        conveyor_2 = Conveyor(3, '2')
-        conveyor_3 = Conveyor(6, '3')
-        conveyor_4 = Conveyor(10, '4')
-        source_1 = Source(['A'], '1')
-        source_2 = Source(['B'], '2')
-        source_3 = Source(['C'], '3')
-
-        source_1.connect_to(conveyor_1)
-        source_2.connect_to(conveyor_2)
-        source_3.connect_to(conveyor_3)
-
-        conveyor_3.connect_to(converger)
-        conveyor_2.connect_to(converger)
-        conveyor_1.connect_to(converger)
-        converger.connect_to(conveyor_4)
-
-        components: List[Component] = [source_1, source_2, source_3, conveyor_1, conveyor_2, conveyor_3, conveyor_4, converger]
-        traces = set()
-
-        for _ in range(1000):
-            order = components.copy()
-            random.shuffle(order)
-
-            converger.__init__('*')
-            conveyor_1.__init__(4, '1')
-            conveyor_2.__init__(3, '2')
-            conveyor_3.__init__(6, '3')
-            conveyor_4.__init__(10, '4')
-            source_1.__init__(['A'], '1')
-            source_2.__init__(['B'], '2')
-            source_3.__init__(['C'], '3')
+        def _get_components_list() -> List[Component]:
+            converger = Converger('*')
+            conveyor_1 = Conveyor(4, '1')
+            conveyor_2 = Conveyor(3, '2')
+            conveyor_3 = Conveyor(6, '3')
+            conveyor_4 = Conveyor(10, '4')
+            source_1 = Source(['A'], '1')
+            source_2 = Source(['B'], '2')
+            source_3 = Source(['C'], '3')
 
             source_1.connect_to(conveyor_1)
             source_2.connect_to(conveyor_2)
             source_3.connect_to(conveyor_3)
+
             conveyor_3.connect_to(converger)
             conveyor_2.connect_to(converger)
             conveyor_1.connect_to(converger)
             converger.connect_to(conveyor_4)
+
+            return [source_1, source_2, source_3, conveyor_1, conveyor_2, conveyor_3, conveyor_4, converger]
+        
+        traces = set()
+
+        for _ in range(1000):
+            components = _get_components_list()
+            order = components.copy()
+            random.shuffle(order)
     
-            controller = Controller(components)
+            controller = Controller(order)
             trace = [self.trace_id(components)]
 
             for _ in range(24):
@@ -123,7 +109,7 @@ class TestConverger(object):
             controller.step()
             trace.append(self.trace_id(components))
         
-        assert trace[-2] == ((12,), (11,), (1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
+        assert trace[-2] == ((12,), (11,), (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)), trace
         assert trace[-1] == ((12,), (11,), (1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
     
     def test_blockage_1(self):
