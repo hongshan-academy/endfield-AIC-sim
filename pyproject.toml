@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "matplotlib>=3.10.8",
+    "mypy>=1.19.1",
     "networkx>=3.6.1",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
@@ -15,3 +16,10 @@ dependencies = [
 [[tool.uv.index]]
 url = "https://mirrors.aliyun.com/pypi/simple"
 default = true
+
+[tool.mypy]
+python_version = "3.12"
+strict = false
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true

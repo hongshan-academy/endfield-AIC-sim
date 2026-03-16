@@ -6,6 +6,8 @@ logger = logging.getLogger(__name__)
 
 
 class Converger(Component):
+    NEED_ADJUDICATION = True
+    
     _rr_index: int
     _selected_upstream: Optional[Component]
     
@@ -13,23 +15,20 @@ class Converger(Component):
         super(Converger, self).__init__(capacity=1, name=name)
             
         self._rr_index = 0
-    
-    def _phase_1_request(self, *args, **kwargs) -> None:
-        super()._phase_1_request(*args, **kwargs)
         
     def _phase_2_adjudicate(self) -> None:
+        assert not self._has_received_item
+        
         for _ in range(len(self._upstreams)):
             self._rr_index = (self._rr_index + 1) % len(self._upstreams)
             upstream = self._upstreams[self._rr_index]
-            if upstream in self._pending_upstreams and self._can_accept(upstream, set()):
-                logger.debug(f"[PHASE 2] {self} --(select)-> {upstream} (index={self._rr_index})")
+            if upstream in self._pending_upstreams and self._can_accept(upstream, set(), phase=2):
+                logger.debug(f"[PHASE 2] \"{self}\" --(select)-> \"{upstream}\" (index={self._rr_index})")
                 self._selected_upstream = upstream
                 break
         
     def _phase_3_response(self) -> None:
-        if not self._pending_upstreams:
-            logger.debug(f'[PHASE 3] {self}: no requests received')
-            return
+        assert not self._has_received_item
 
         if self._selected_upstream:
             self._grant(self._selected_upstream)
@@ -37,11 +36,9 @@ class Converger(Component):
     def _phase_4_send(self) -> None:        
         assert len(self._pending_downstreams) <= 1, self._pending_downstreams
         
-        if self._pending_downstreams:
-            logger.debug(f"[PHASE 4] {self} --({self._items[0]})-> {self._pending_downstreams[0]}")
-            self._pending_downstreams[0]._input, self._items[0] = self._items[0], None
+        self._send_item(phase=4)
         
-    def _can_accept(self, upstream: 'Component', path: Set['Component']) -> bool:
+    def _can_accept(self, upstream: 'Component', path: Set['Component'], phase=3) -> bool:
         # | downstream     | [current]      | behaviour |
         # | -------------- | -------------- | --------- |
         # | ~              | has-empty-slot | grant     |
@@ -50,15 +47,15 @@ class Converger(Component):
         
         # cycle detection
         if self in path:
-            logger.debug(f"[PHASE 3] {self} detects cycle in path {path}")
+            logger.debug(f"[PHASE {phase}] \"{self}\" detects cycle in path {path}")
             # this should not be cached
             return False
         
         if self._can_accept_cache.get(upstream) is not None:
             if self._can_accept_cache[upstream]:
-                logger.debug(f"[PHASE 3] {self} --(can accept)--> {upstream} (cached)")
+                logger.debug(f"[PHASE {phase}] \"{self}\" --(can accept)-> \"{upstream}\" (cached)")
             else:
-                logger.debug(f"[PHASE 3] {self} --(cannot accept)--> {upstream} (cached)")
+                logger.debug(f"[PHASE {phase}] \"{self}\" --(cannot accept)-> \"{upstream}\" (cached)")
                 
             return self._can_accept_cache[upstream]
         
@@ -72,19 +69,19 @@ class Converger(Component):
             self._can_accept_cache[upstream] = True
         else:
             self._can_accept_cache[upstream] = any(
-                downstream._can_accept(self, path) for downstream in self._downstreams
+                downstream._can_accept(self, path, phase) for downstream in self._downstreams
             )
         
         path.remove(self)
         
         if self._can_accept_cache[upstream]:
-            logger.debug(f"[PHASE 3] {self} --(can accept)--> {upstream}")
+            logger.debug(f"[PHASE {phase}] \"{self}\" --(can accept)-> \"{upstream}\"")
         else:
-            logger.debug(f"[PHASE 3] {self} --(cannot accept)--> {upstream}")
+            logger.debug(f"[PHASE {phase}] \"{self}\" --(cannot accept)-> \"{upstream}\"")
             
         return self._can_accept_cache[upstream]
-    
+
     def _reset(self) -> None:
-        super()._reset()
+        super(Converger, self)._reset()
         
         self._selected_upstream = None
