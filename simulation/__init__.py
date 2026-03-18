@@ -1,6 +1,6 @@
 from .components import Source, Sink, Splitter, Converger, Conveyor, Component
 from .controller import Controller, run_simulation
-from .item import Item
+from .item.item import Item
 
 
 __all__ = [

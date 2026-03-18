@@ -1,12 +1,12 @@
 from typing import List
 
-from .components import Base, Source
+from .components import Component, Source
 
 
 class Controller(object):
-    _components: List[Base]
+    _components: List[Component]
     
-    def __init__(self, components: List[Base]) -> None:
+    def __init__(self, components: List[Component]) -> None:
         self._components = components
     
     def step(self) -> None:
@@ -25,7 +25,7 @@ class Controller(object):
         for component in self._components:
             component.phase_5_tick()
 
-def run_simulation(components: List[Base], total_ticks: int):
+def run_simulation(components: List[Component], total_ticks: int):
     controller = Controller(components)
     for _ in range(total_ticks):
         controller.step()
