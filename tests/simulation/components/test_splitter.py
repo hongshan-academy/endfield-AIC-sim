@@ -1,4 +1,4 @@
-from simulation.components import Splitter, Conveyor, Source, Component
+from simulation.components import Splitter, Conveyor, Source, Base
 from simulation import Controller
 
 from ..utils import trace_id
@@ -18,7 +18,7 @@ class TestSplitter(object):
         splitter.connect_to(conveyor_2)
         splitter.connect_to(conveyor_3)
         
-        components: List[Component] = [source, conveyor_1, splitter, conveyor_2, conveyor_3]
+        components: List[Base] = [source, conveyor_1, splitter, conveyor_2, conveyor_3]
         controller = Controller(components)
         trace = [trace_id(components)]
         for _ in range(11):

@@ -1,4 +1,4 @@
-from simulation.components import Converger, Splitter, Source, Sink, Conveyor, Component
+from simulation.components import Converger, Splitter, Source, Sink, Conveyor, Base
 from simulation import Controller, run_simulation
 from ..utils import trace_id, trace_bool 
 
@@ -28,7 +28,7 @@ class TestConverger(object):
         conveyor_1.connect_to(converger)
         converger.connect_to(conveyor_4)
         
-        components: List[Component] = [source_1, source_2, source_3, conveyor_1, conveyor_2, conveyor_3, conveyor_4, converger]
+        components: List[Base] = [source_1, source_2, source_3, conveyor_1, conveyor_2, conveyor_3, conveyor_4, converger]
         controller = Controller(components)
         trace = [trace_id(components)]
         for _ in range(24):
@@ -40,7 +40,7 @@ class TestConverger(object):
     def test_converger_order_invariance(self):
         random.seed(42)
 
-        def _get_components_list() -> List[Component]:
+        def _get_components_list() -> List[Base]:
             converger = Converger('*')
             conveyor_1 = Conveyor(4, '1')
             conveyor_2 = Conveyor(3, '2')
@@ -90,7 +90,7 @@ class TestConverger(object):
         converger.connect_to(conveyor)
         conveyor.connect_to(converger)
         
-        components: List[Component] = [source, converger, conveyor]
+        components: List[Base] = [source, converger, conveyor]
         controller = Controller(components)
         trace = [trace_id(components)]
         for _ in range(13):
@@ -124,7 +124,7 @@ class TestConverger(object):
         conveyors[2].connect_to(converger)
         conveyors[3].connect_to(sink)
         
-        components: List[Component] = [source, *conveyors, converger, splitter, sink]
+        components: List[Base] = [source, *conveyors, converger, splitter, sink]
         controller = Controller(components)
         trace = [trace_bool(components)]
         for _ in range(20):
@@ -179,7 +179,7 @@ class TestConverger(object):
         splitters[1].connect_to(conveyors[6])
         conveyors[6].connect_to(convergers[1])
         
-        components: List[Component] = [source, *conveyors, *convergers, *splitters, sink]
+        components: List[Base] = [source, *conveyors, *convergers, *splitters, sink]
         controller = Controller(components)
         trace = [trace_bool(components)]
         for _ in range(100):
@@ -259,7 +259,7 @@ class TestConverger(object):
         conveyors[9].connect_to(convergers[2])
         conveyors[10].connect_to(convergers[2])
         
-        components: List[Component] = [source, *conveyors, *convergers, *splitters, sink]
+        components: List[Base] = [source, *conveyors, *convergers, *splitters, sink]
         controller = Controller(components)
         trace = [trace_bool(components)]
         for _ in range(100):
@@ -304,7 +304,7 @@ class TestConverger(object):
         converger.connect_to(conveyor_2)
         conveyor_2.connect_to(sink)
         
-        components: List[Component] = [source_0, source_1, conveyor_0, conveyor_1, conveyor_2, converger, splitter, sink]
+        components: List[Base] = [source_0, source_1, conveyor_0, conveyor_1, conveyor_2, converger, splitter, sink]
         run_simulation(components, 20)
         
         assert sink._received_items[0].name == 'A'

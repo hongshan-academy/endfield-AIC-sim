@@ -2,7 +2,6 @@ from typing import Optional, List, Dict, Set
 import logging
 
 from ..item import Item
-from . import *
 
 logger = logging.getLogger(__name__)
 
