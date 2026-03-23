@@ -1,6 +1,7 @@
 from typing import List
 
-from .components import Base, Source
+from .components import Source
+from .base import Base
 
 
 class Controller(object):

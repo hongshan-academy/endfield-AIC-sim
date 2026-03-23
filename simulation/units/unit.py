@@ -71,10 +71,16 @@ class Unit(Base):
                 self._send_item(phase=4, downstream=downstream)
     
     def _phase_5_commit(self) -> None:
-        return super()._phase_5_commit()
-    
-    def _receive_item(self, upstream: Base, item: Item) -> None:
-        self._inventory.push(item)
+        for i in range(len(self._input)):
+            item = self._input[i]
+            if item is None:
+                continue
+            
+            if self._inventory.can_push(item.type):
+                self._inventory.push(item)
+                self._input[i] = None
+
+        assert all(i is None for i in self._input)
     
     def _send_item(self, phase: int = 4, downstream: Optional[Base] = None) -> None:
         if downstream is None:
@@ -109,7 +115,7 @@ class Unit(Base):
                 
             return self._can_accept_cache[upstream]
         
-        if upstream != self._upstreams[self._downstream_rr_index]:
+        if upstream != self._upstreams[self._upstream_rr_index]:
             self._can_accept_cache[upstream] = False
             return False
         
@@ -137,3 +143,6 @@ class Unit(Base):
     def _reset(self) -> None:
         super(Unit, self)._reset()
         self._selected_upstreams = []
+    
+    def _has_empty_slot(self) -> bool:
+        return sum(self._inventory.remaining_capacity().values()) > 0

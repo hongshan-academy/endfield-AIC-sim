@@ -67,3 +67,16 @@ class Inventory(object):
             if stack is not None:
                 types.add(stack.item_type)
         return {typ: self.can_push(typ) for typ in types}
+
+    def __str__(self) -> str:
+        summary = []
+        for item_stack in self._inventory:
+            if item_stack is None:
+                summary.append((' ', 0))
+            else:
+                summary.append((item_stack.item_type, item_stack._count))
+        
+        return summary.__str__()
+
+    def __repr__(self) -> str:
+        return self.__str__()

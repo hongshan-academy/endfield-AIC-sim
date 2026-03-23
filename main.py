@@ -62,7 +62,8 @@ if __name__ == '__main__':
     # main()
     
     t = TestStorageBox()
-    t.test_storage_box_1()
+    # t.test_storage_box_1()
+    t.test_storage_box_2()
     # t = TestConveyor()
     # t = TestSplitter()
     # t = TestConverger()
