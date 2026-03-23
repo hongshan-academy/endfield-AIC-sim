@@ -1,6 +1,7 @@
 from typing import List
 
-from .base import Component
+from .component import Component
+from ..base import Base
 from ..item import Item
 
 import logging
@@ -24,7 +25,6 @@ class Source(Component):
         assert self._sequence
         
         self._items[0] = self._get_item()
-        self._input    = None
 
     def _phase_3_response(self) -> None:
         assert not self._has_received_item
@@ -36,6 +36,9 @@ class Source(Component):
         assert self._rr_index < len(self._sequence)
         
         super(Source, self)._phase_4_send()
+        
+    def _phase_5_commit(self) -> None:
+        return
     
     # helper methods
     def _get_item(self) -> Item:
@@ -50,7 +53,7 @@ class Source(Component):
         
         assert item is not None
         
-        self._pending_downstreams[0]._receive_item(item)
+        self._pending_downstreams[0]._receive_item(self, item)
         logger.debug(f"[PHASE {phase}] \"{self}\" --(\"{item}\")-> \"{self._pending_downstreams[0]}\"")
         self._has_sent_item = True
     

@@ -3,8 +3,8 @@
 
 # @total_ordering
 class Item(object):
-    def __init__(self, name: str, item_id: int = 0) -> None:
-        self.name = name
+    def __init__(self, type: str, item_id: int = 0) -> None:
+        self.type = type
         self.id   = item_id
         # self.life_time = 0
     
@@ -12,13 +12,13 @@ class Item(object):
         return str(self)
     
     def __str__(self) -> str:
-        if self.name:
-            return f'Item.{self.name}({self.id})'
+        if self.type:
+            return f'Item.{self.type}({self.id})'
         else:
             return f'Item({self.id})'
     
     def __hash__(self) -> int:
-        return hash((self.name, self.id))
+        return hash((self.type, self.id))
     
     # def reset_life_time(self):
     #     self.life_time = 0

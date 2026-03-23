@@ -1,6 +1,6 @@
 from typing import Optional, List, Set
-
-from .base import Component
+from .component import Component
+from ..base import Base
 from ..item import Item
 
 
@@ -23,10 +23,19 @@ class Sink(Component):
         assert not self._pending_downstreams
     
     def _phase_5_commit(self) -> None:
-        self._items[-1], self._input = self._input, None
+        if self._items[-1] is not None:
+            self._items[-1] = None
+        
+        for i in range(len(self._input)):
+            if self._input[i] is None:
+                continue
+            
+            self._items[-1], self._input[i] = self._input[i], None
+            break
+        
         if self._items[0] is not None:
             self._received_items.append(self._items[0])
         
-    def _can_accept(self, upstream: Optional[Component], path: Set[Component], phase: int = 3) -> bool:
+    def _can_accept(self, upstream: Optional[Base], path: Set[Base], phase: int = 3) -> bool:
         return True
         

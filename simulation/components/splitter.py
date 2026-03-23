@@ -1,6 +1,7 @@
 from typing import Set, Optional
 
-from .base import Component
+from ..base import Base
+from .component import Component
 
 import logging
 
@@ -18,16 +19,16 @@ class Splitter(Component):
     
     def _phase_1_request(
         self, 
-        upstream: Optional['Component'] = None, 
-        path: Optional[Set['Component']] = None
+        upstream: Optional['Base'] = None, 
+        path: Optional[Set['Base']] = None
     ) -> None:
         """_phase 1_
         
         向下游发送递送请求. 
         
         Args:
-            upstream (Optional[&#39;Component&#39;], optional): _description_. Defaults to None.
-            path (Optional[Set[&#39;Component&#39;]], optional): _description_. Defaults to None.
+            upstream (Optional[&#39;Base&#39;], optional): _description_. Defaults to None.
+            path (Optional[Set[&#39;Base&#39;]], optional): _description_. Defaults to None.
         """
         if upstream is not None and upstream in self._phase_1_visited:
             return
@@ -74,7 +75,7 @@ class Splitter(Component):
                 self._send_item(phase=4, downstream=downstream)
                 return
     
-    def _send_item(self, phase: int = 4, downstream: Optional[Component] = None) -> None:
+    def _send_item(self, phase: int = 4, downstream: Optional[Base] = None) -> None:
         if downstream is None:
             return
                 
@@ -83,6 +84,6 @@ class Splitter(Component):
                 
         assert item is not None
                 
-        downstream._receive_item(item)
+        downstream._receive_item(self, item)
         self._has_sent_item = True
 

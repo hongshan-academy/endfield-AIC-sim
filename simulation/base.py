@@ -1,29 +1,27 @@
 from typing import Optional, List, Dict, Set
 import logging
 
-from ..item import Item, Inventory
-from . import *
+from .item import Item
 
 logger = logging.getLogger(__name__)
 
 
-class Unit(object):
+class Base(object):
     # const
     NEED_ADJUDICATION: bool
     
     # states
-    _items: List[Optional[Item]]
-    _input: Optional[Item]
+    _input: List[Optional[Item]]
     
     # connections
-    _upstreams:   List['Unit']
-    _downstreams: List['Unit']
+    _upstreams:   List['Base']
+    _downstreams: List['Base']
     
     # transient flags/variables
-    _pending_upstreams:   List['Unit']
-    _pending_downstreams: List['Unit']
-    _can_accept_cache: Dict['Unit', bool]
-    _phase_1_visited: Set['Unit']
+    _pending_upstreams:   List['Base']
+    _pending_downstreams: List['Base']
+    _can_accept_cache: Dict['Base', bool]
+    _phase_1_visited: Set['Base']
     
     # 剪枝
     _has_received_item: bool
@@ -32,10 +30,8 @@ class Unit(object):
     # for debug
     name: str
     
-    def __init__(self, capacity: int, name: str = '') -> None:        
-        self._items = [None] * capacity
-        self._input = None
-        
+    def __init__(self, name: str = '') -> None:        
+        self._input       = []
         self._upstreams   = []
         self._downstreams = []
         
@@ -46,10 +42,11 @@ class Unit(object):
     
         self._reset()
         
-    def connect_to(self, downstream: 'Unit') -> None:
+    def connect_to(self, downstream: 'Base') -> None:
         if downstream not in self._downstreams:
             self._downstreams.append(downstream)
             downstream._upstreams.append(self)
+            downstream._input.append(None)
     
     # phases interfaces
     def phase_1_tick(self) -> None:
@@ -89,16 +86,16 @@ class Unit(object):
     # phases method
     def _phase_1_request(
         self, 
-        upstream: Optional['Unit'] = None, 
-        path: Optional[Set['Unit']] = None
+        upstream: Optional['Base'] = None, 
+        path: Optional[Set['Base']] = None
     ) -> None:
         """_phase 1_
         
         向下游发送递送请求. 
         
         Args:
-            upstream (Optional[&#39;Unit&#39;], optional): 上游请求发送方. Defaults to None.
-            path (Optional[Set[&#39;Unit&#39;]], optional): 递归路径. Defaults to None.
+            upstream (Optional[&#39;Base&#39;], optional): 上游请求发送方. Defaults to None.
+            path (Optional[Set[&#39;Base&#39;]], optional): 递归路径. Defaults to None.
         """
         
         if upstream is not None and upstream in self._phase_1_visited:
@@ -163,36 +160,30 @@ class Unit(object):
         """_phase 5_
         
         更新自己的状态. 重置中间变量. 
-        """    
-        for i in range(len(self._items) - 1):
-            if self._items[i] is None and self._items[i + 1] is not None:
-                self._items[i], self._items[i + 1] = self._items[i + 1], self._items[i]
-        
-        if self._items[-1] is None:
-            self._items[-1], self._input = self._input, None
+        """
+        raise NotImplementedError
     
-    # Unit-specific methods
+    # helper methods
     def _want_to_send(self) -> bool:
         """判断是否有需要递送的物品. 
 
         Returns:
             bool: 有需要递送的物品时返回 `True`. 
         """
-        return self._items[0] is not None
+        raise NotImplementedError
     
-    # helper methods
     def _has_empty_slot(self) -> bool:
         """判断是否有空位
 
         Returns:
             bool: 有空位则返回 `True`. 
         """
-        return None in self._items
+        raise NotImplementedError
 
-    def _grant(self, upstream: "Unit") -> None:
+    def _grant(self, upstream: "Base") -> None:
         upstream._pending_downstreams.append(self)
     
-    def _can_accept(self, upstream: 'Unit', path: Set['Unit'], phase=3) -> bool:
+    def _can_accept(self, upstream: 'Base', path: Set['Base'], phase=3) -> bool:
         """是否能接受来自上游的物品. 
 
         | downstream     | [current]      | behaviour |
@@ -202,8 +193,8 @@ class Unit(object):
         | full           | full           | recursion |
         
         Args:
-            upstream (Unit): 上游请求发送方. 
-            path (Set[&#39;Unit&#39;]): 递归路径
+            upstream (Base): 上游请求发送方. 
+            path (Set[&#39;Base&#39;]): 递归路径
             phase (int, optional): 调用时所处的阶段，用于日志. Defaults to 3.
 
         Returns:
@@ -245,21 +236,18 @@ class Unit(object):
     def _send_item(self, phase: int = 4) -> None:
         """向下游递送物品. 
         """
-        
-        item, self._items[0] = self._items[0], None
-        assert item is not None
-        self._pending_downstreams[0]._receive_item(item)
-        logger.debug(f"[PHASE {phase}] \"{self}\" --(\"{item}\")-> \"{self._pending_downstreams[0]}\"")
-        self._has_sent_item = True
+        raise NotImplementedError
 
-    def _receive_item(self, item: Item) -> None:
+    def _receive_item(self, upstream: 'Base', item: Item) -> None:
         """从上游接受物品. 
 
         Args:
             item (Item): 来自上游的物品
         """
         
-        self._input = item
+        upstream_idx = self._upstreams.index(upstream)
+        assert upstream_idx >= 0
+        self._input[upstream_idx] = item
         self._has_received_item = True
     
     def _reset(self) -> None:

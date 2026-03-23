@@ -1,5 +1,7 @@
-from typing import Set, Optional
-from .base import Component
+from typing import Set, Optional, List
+from .component import Component
+from ..base import Base
+from ..item import Item
 import logging
 
 logger = logging.getLogger(__name__)
@@ -9,7 +11,7 @@ class Converger(Component):
     NEED_ADJUDICATION = True
     
     _rr_index: int
-    _selected_upstream: Optional[Component]
+    _selected_upstream: Optional[Base]
     
     def __init__(self, name: str = '') -> None:
         super(Converger, self).__init__(capacity=1, name=name)
@@ -38,7 +40,7 @@ class Converger(Component):
         
         self._send_item(phase=4)
         
-    def _can_accept(self, upstream: 'Component', path: Set['Component'], phase=3) -> bool:
+    def _can_accept(self, upstream: 'Base', path: Set['Base'], phase=3) -> bool:
         # | downstream     | [current]      | behaviour |
         # | -------------- | -------------- | --------- |
         # | ~              | has-empty-slot | grant     |

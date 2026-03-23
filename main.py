@@ -1,8 +1,9 @@
+from tests.simulation.units.test_storage_box import TestStorageBox
 # from tests.simulation.components.test_converger import TestConverger
 # from tests.simulation.components.test_conveyor import TestConveyor
 # from tests.simulation.components.test_splitter import TestSplitter
 
-from simulation import Component, Splitter, Conveyor, Source, Sink
+from simulation import Base, Splitter, Conveyor, Source, Sink
 from tests.simulation.utils import trace_bool, trace_id
 from typing import List
 import logging
@@ -27,7 +28,7 @@ def main():
     conveyors[0].connect_to(splitter)
     conveyors[2].connect_to(sink)
     
-    components: List[Component] = [source, *conveyors, sink]
+    components: List[Base] = [source, *conveyors, sink]
     
     for _ in range(40):
         for component in components:
@@ -58,11 +59,14 @@ if __name__ == '__main__':
         level=logging.DEBUG
     )
     
-    main()
+    # main()
     
+    t = TestStorageBox()
+    t.test_storage_box_1()
     # t = TestConveyor()
     # t = TestSplitter()
     # t = TestConverger()
+    # t.test_blockage_1()
     # t.test_blockage_3()
     # t.test_converger_cycle()
     # t.test_splitter()

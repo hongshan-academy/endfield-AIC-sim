@@ -1,6 +1,6 @@
 from typing import Tuple, Union
 
-from simulation import Component
+from simulation import Base
 
 from .enum import Direction
 from simulation import *

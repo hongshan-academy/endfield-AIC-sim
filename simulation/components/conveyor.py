@@ -1,5 +1,7 @@
-from typing import Set
-from .base import Component
+from typing import List, Optional
+from .component import Component
+from ..base import Base
+from ..item import Item
 
 import logging
 
@@ -10,7 +12,7 @@ class Conveyor(Component):
     NEED_ADJUDICATION = False
     
     def __init__(self, capacity: int, name: str = '') -> None:
-        super(Conveyor, self).__init__(capacity, name)
+        super(Conveyor, self).__init__(capacity=capacity, name=name)
     
     def _phase_3_response(self) -> None:
         assert len(self._pending_upstreams) <= 1

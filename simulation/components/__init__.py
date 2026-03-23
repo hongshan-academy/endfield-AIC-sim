@@ -1,4 +1,4 @@
-from .base import Component
+from .component import Component
 from .conveyor import Conveyor
 from .sink import Sink
 from .source import Source

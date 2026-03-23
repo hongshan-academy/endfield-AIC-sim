@@ -1,4 +1,5 @@
-from .base import Unit
+from .unit import Unit
 
 class StorageBox(Unit):
-    pass
+    def __init__(self, name: str = '') -> None:
+        super(StorageBox, self).__init__(6, name)

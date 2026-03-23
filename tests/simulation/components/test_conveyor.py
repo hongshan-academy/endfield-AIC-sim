@@ -1,5 +1,5 @@
-from simulation.components import Conveyor, Source, Component
-from simulation import Controller
+from simulation.components import Conveyor, Source
+from simulation import Controller, Base
 
 from ..utils import trace_id
 
@@ -17,7 +17,7 @@ class TestConveyor(object):
         conveyor_3.connect_to(conveyor_1)
         conveyor_1.connect_to(conveyor_2)
         
-        components: List[Component] = [source, conveyor_3, conveyor_1, conveyor_2]
+        components: List[Base] = [source, conveyor_3, conveyor_1, conveyor_2]
         controller = Controller(components)
         trace = [trace_id(components)]
         for _ in range(8):
