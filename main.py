@@ -1,4 +1,5 @@
-from tests.simulation.units.test_storage_box import TestStorageBox
+# from tests.simulation.units.test_storage_box import TestStorageBox
+from tests.simulation.test_priority import TestPriority
 # from tests.simulation.components.test_converger import TestConverger
 # from tests.simulation.components.test_conveyor import TestConveyor
 # from tests.simulation.components.test_splitter import TestSplitter
@@ -61,9 +62,12 @@ if __name__ == '__main__':
     
     # main()
     
-    t = TestStorageBox()
+    # t = TestStorageBox()
+    t = TestPriority()
+    t.test_priority_1()
     # t.test_storage_box_1()
-    t.test_storage_box_2()
+    # t.test_storage_box_2()
+    # t.test_storage_box_3()
     # t = TestConveyor()
     # t = TestSplitter()
     # t = TestConverger()

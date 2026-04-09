@@ -282,32 +282,32 @@ class TestConverger(object):
     #     sink_1 = Sink()
     #     sink_2 = Sink()
 
-    def test_priority(self):
-        source_0 = Source(['A'])
-        source_1 = Source(['B'])
-        sink = Sink()
+    # def test_priority(self):
+    #     source_0 = Source(['A'])
+    #     source_1 = Source(['B'])
+    #     sink = Sink()
         
-        conveyor_0 = Conveyor(1, '0')
-        conveyor_1 = Conveyor(1, '1')
-        conveyor_2 = Conveyor(1, '1')
+    #     conveyor_0 = Conveyor(1, '0')
+    #     conveyor_1 = Conveyor(1, '1')
+    #     conveyor_2 = Conveyor(1, '1')
         
-        splitter = Splitter()
-        converger = Converger()
+    #     splitter = Splitter()
+    #     converger = Converger()
         
-        source_0.connect_to(conveyor_0)
-        source_1.connect_to(conveyor_1)
+    #     source_0.connect_to(conveyor_0)
+    #     source_1.connect_to(conveyor_1)
         
-        splitter.connect_to(converger)
+    #     splitter.connect_to(converger)
         
-        conveyor_1.connect_to(splitter)
-        conveyor_0.connect_to(converger)
-        converger.connect_to(conveyor_2)
-        conveyor_2.connect_to(sink)
+    #     conveyor_1.connect_to(splitter)
+    #     conveyor_0.connect_to(converger)
+    #     converger.connect_to(conveyor_2)
+    #     conveyor_2.connect_to(sink)
         
-        components: List[Base] = [source_0, source_1, conveyor_0, conveyor_1, conveyor_2, converger, splitter, sink]
-        run_simulation(components, 20)
+    #     components: List[Base] = [source_0, source_1, conveyor_0, conveyor_1, conveyor_2, converger, splitter, sink]
+    #     run_simulation(components, 20)
         
-        assert sink._received_items[0].type == 'A'
-        assert [i.type for i in sink._received_items[-10:]] == ['B'] * 10
+    #     assert sink._received_items[0].type == 'A'
+    #     assert [i.type for i in sink._received_items[-10:]] == ['B'] * 10
         
         

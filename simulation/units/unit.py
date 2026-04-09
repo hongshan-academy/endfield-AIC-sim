@@ -17,6 +17,8 @@ class Unit(Base):
     
     _selected_upstreams: List[Base]
     
+    _item_id:  int
+    
     def __init__(self, capacity: int, name: str = '') -> None:
         super(Unit, self).__init__(name=name)
         

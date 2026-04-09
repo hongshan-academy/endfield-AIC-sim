@@ -27,7 +27,7 @@ class Converger(Component):
             if upstream in self._pending_upstreams and self._can_accept(upstream, set(), phase=2):
                 logger.debug(f"[PHASE 2] \"{self}\" --(select)-> \"{upstream}\" (index={self._rr_index})")
                 self._selected_upstream = upstream
-                break
+                return
         
     def _phase_3_response(self) -> None:
         assert not self._has_received_item
